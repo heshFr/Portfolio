@@ -72,6 +72,16 @@ Two rules keep it from wrecking the page:
   bundle costs about 950ms of blocked main thread on a throttled phone and takes
   the home page from 95 to 74.
 
+Clicking a print opens it: the camera stops tracking the pointer and aims at
+the print instead, which centres it by construction rather than by arithmetic
+that has to stay correct. The other two park in absolute slots, one either side,
+so the open one always has one to its left and one to its right. An open print
+stops casting, because it is no longer lying on the desk.
+
+`content/prints.ts` is shared by the scene and by the plain HTML controls under
+it, so the keyboard path and the pointer path cannot disagree about what is on
+the desk. Those controls work when WebGL never loads at all.
+
 To re-render the poster after changing the scene, screenshot `.desk-stage` at
 2x with the pointer centred, then downscale to 2000px wide.
 
