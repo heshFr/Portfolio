@@ -5,7 +5,7 @@ import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
-  axes: ["opsz", "wdth"],
+  axes: ["opsz"],
   variable: "--font-bricolage",
   display: "swap",
 });
@@ -31,12 +31,19 @@ export const metadata: Metadata = {
   },
   description:
     "I build the software companies run on internally: systems that hold work, approvals, payroll and records.",
+  openGraph: {
+    type: "website",
+    siteName: "Hetesh Vichare",
+    locale: "en_IN",
+    images: [{ url: "/og/home.png", width: 1200, height: 630 }],
+  },
+  twitter: { card: "summary_large_image" },
+  alternates: { canonical: "/" },
 };
 
 const NAV = [
   { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
-  { href: "/resume.pdf", label: "Resume" },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -52,18 +59,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <header className="border-b border-rule">
           <div className="shell flex items-baseline justify-between gap-6 py-4">
-            <Link href="/" className="label text-ink hover:text-red">
+            <Link href="/" className="label text-ink hover:text-red inline-block py-1.5">
               Hetesh Vichare
             </Link>
             <nav>
               <ul className="flex items-baseline gap-5">
                 {NAV.map((item) => (
                   <li key={item.href}>
-                    <Link href={item.href} className="label hover:text-red">
+                    <Link href={item.href} className="label hover:text-red inline-block py-1.5">
                       {item.label}
                     </Link>
                   </li>
                 ))}
+                <li>
+                  {/* A static file, so a plain anchor. A next/link would
+                      prefetch the whole PDF on every page view. */}
+                  <a href="/resume.pdf" className="label hover:text-red inline-block py-1.5">
+                    Resume
+                  </a>
+                </li>
               </ul>
             </nav>
           </div>
@@ -73,26 +87,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
 
-        <footer className="border-t border-rule mt-24">
-          <div className="record !py-0">
-            <div className="col-span-full py-8 note">
-              <p>
-                <a href="mailto:hetesh045@gmail.com" className="hover:text-red">
-                  hetesh045@gmail.com
-                </a>
-                {"  ·  "}
-                <span className="num">+91 89760 53362</span>
-                {"  ·  "}
-                <a href="https://github.com/heshFr" className="hover:text-red">
-                  github.com/heshFr
-                </a>
-                {"  ·  "}
-                <a href="https://linkedin.com/in/hetesh-vichare" className="hover:text-red">
-                  linkedin.com/in/hetesh-vichare
-                </a>
-              </p>
-              <p className="mt-2">Mumbai, India.</p>
-            </div>
+        <footer className="border-t border-rule mt-8">
+          <div className="shell py-7 note flex flex-wrap gap-x-6 gap-y-2 justify-between items-baseline">
+            <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <a href="mailto:hetesh045@gmail.com" className="link py-1">
+                hetesh045@gmail.com
+              </a>
+              <span aria-hidden="true">·</span>
+              <a href="tel:+918976053362" className="link num py-1">
+                +91 89760 53362
+              </a>
+              <span aria-hidden="true">·</span>
+              <a href="https://github.com/heshFr" className="link py-1" rel="me noreferrer">
+                github.com/heshFr
+              </a>
+              <span aria-hidden="true">·</span>
+              <a
+                href="https://linkedin.com/in/hetesh-vichare"
+                className="link py-1"
+                rel="me noreferrer"
+              >
+                linkedin.com/in/hetesh-vichare
+              </a>
+            </p>
+            <p>Mumbai, India.</p>
           </div>
         </footer>
       </body>

@@ -159,6 +159,142 @@ export const CLAIMS = {
     checked: "2026-08-27",
     status: "verified",
   },
+
+  "altus-clients": {
+    id: "altus-clients",
+    value: "three",
+    label: "shipping clients",
+    source:
+      "A Next.js web app, an Expo and React Native app, and a separate native Android app in Kotlin, all served by a dedicated mobile API of about 45 endpoints under app/api/mobile.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "altus-pool": {
+    id: "altus-pool",
+    value: "8",
+    label: "Postgres connections per instance",
+    source:
+      "Cut from 18 after the pool-exhaustion incident, with idle timeout at about 10s and max lifetime at about 600s. Supabase allows 60 connections in total.",
+    checked: "2026-08-27",
+    status: "reported",
+  },
+
+  /* --------------------------------------------------------- Beauty, depth */
+
+  "beauty-raw": {
+    id: "beauty-raw",
+    value: "1,028,860",
+    label: "raw products before filtering",
+    source:
+      "Amazon Reviews 2023, Beauty_and_Personal_Care. 407,588 were rejected as not beauty, leaving 621,272 enriched and 60,000 after pruning.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-onereview": {
+    id: "beauty-onereview",
+    value: "95",
+    label: "per cent of reviewers with exactly one interaction",
+    source:
+      "Density profiling of the corpus: mean 1.07 reviews per user, median 1. This measurement is what decided the architecture.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-recall": {
+    id: "beauty-recall",
+    value: "15",
+    label: "per cent retrieval recall",
+    source:
+      "Measured directly over 400 queries with a candidate pool of about 500: the ground-truth item is present 15.00% of the time. attribute 9.75%, semantic 3.75%, collaborative 3.00%.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-poison": {
+    id: "beauty-poison",
+    value: "87.4",
+    label: "per cent of training groups poisoned",
+    source:
+      "Ground-truth items missed by retrieval were injected with raw_score 0.0. At 15% retrieval recall that left 87.4% of training groups with a positive scoring zero on every feature.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-tests": {
+    id: "beauty-tests",
+    value: "142",
+    label: "test functions",
+    source:
+      "Counted as test functions across the five files in backend/tests, plus six parametrised cases and two Hypothesis property tests, so the collected count pytest reports is higher. I have counted the functions, not the collected cases.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-personalisation": {
+    id: "beauty-personalisation",
+    value: "0.991",
+    label: "personalisation",
+    source:
+      "From reports/evaluation.json. Almost every user receives a distinct list, which is the opposite of a bestseller list and the thing the product exists to do.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-retrievers": {
+    id: "beauty-retrievers",
+    value: "four",
+    label: "retrievers",
+    source:
+      "attribute, semantic, collaborative and popularity, all present in backend/recsys/retrieval. Note that the committed evaluation run predates the popularity retriever and records only three, so the accuracy figures on this page describe the three-retriever configuration.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "beauty-fairness": {
+    id: "beauty-fairness",
+    value: "1",
+    label: "per cent of users with a real skin tone label",
+    source:
+      "Skin tone was recovered from review text for only about 1% of users and the rest are sampled from priors, so the fairness figures describe model behaviour across assigned labels, not real-world equity. That caveat is published with the numbers.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+
+  /* --------------------------------------------------- Satya Drishti, depth */
+
+  "satya-layers": {
+    id: "satya-layers",
+    value: "nine",
+    label: "analysis layers in the audio path",
+    source:
+      "Self-supervised Wav2Vec2 features, Whisper encoder features, RawNet3 raw waveform, prosodic micro-jitter, breathing detection, formant transitions, phase coherence, cross-chunk temporal tracking, and weighted ensemble fusion. Three of them carry veto power.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "satya-weights": {
+    id: "satya-weights",
+    value: "",
+    label: "the models are trained and on disk",
+    source:
+      "XLS-R 300m at 1.27 GB, image forensics ViT checkpoints through epoch 15, a spatial ViT, an R3D temporal model and a fusion network, plus INT8 ONNX exports at roughly a quarter the size for local inference.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+  "satya-threshold": {
+    id: "satya-threshold",
+    value: "0.65",
+    label: "spoof threshold after the demo",
+    source:
+      "Raised from 0.50. The biological veto's biomarker bar went from 0.90 to 0.95 and now requires the neural detector to agree above 0.65 before it can fire at all.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
+
+  /* ----------------------------------------------------- MarketPlus, depth */
+
+  "marketplus-shape": {
+    id: "marketplus-shape",
+    value: "459",
+    label: "files across three apps and nine packages",
+    source:
+      "A Turborepo monorepo: apps for web, api and realtime, with packages including a prediction engine, an outcome tracker, an evaluation harness and an AI cost ledger.",
+    checked: "2026-08-27",
+    status: "verified",
+  },
 } as const satisfies Record<string, Claim>;
 
 export type ClaimId = keyof typeof CLAIMS;

@@ -1,10 +1,139 @@
-export const metadata = { title: "satya-drishti" };
+import { CaseHeader, Section, Decision, Stack, Ledger } from "@/components/case";
+import { Fig } from "@/components/claim";
 
-# satya-drishti
+export const metadata = {
+  title: "Satya Drishti",
+  description:
+    "A live call screener that detects AI-cloned voices, deepfaked faces and coercive language while a call is happening, with every model running on the user's own machine.",
+  openGraph: { images: [{ url: "/og/satya-drishti.png", width: 1200, height: 630 }] },
+  alternates: { canonical: "/work/satya-drishti" },
+};
 
-Scaffold placeholder. This file proves the MDX pipeline compiles and that a
-case study can be promoted by dropping an `.mdx` file into `app/work/`.
+<CaseHeader
+  title="Satya Drishti"
+  role="Founder and sole developer"
+  period="2026"
+  lede="A live call screener that tells you when the voice on the line is not a person."
+  link={{ label: "satyadrishti.vercel.app", href: "https://satyadrishti.vercel.app" }}
+/>
 
-| Column | Value |
-| --- | --- |
-| GFM tables | working |
+<Section
+  label="The size of it"
+  note={
+    <>
+      <p className="label mb-2">Why local</p>
+      <p>
+        The input is a recording of someone's family member on a phone call,
+        often under duress. That is not data to ship to a server.
+      </p>
+    </>
+  }
+>
+
+Four detection modules, for audio, video, text and a fusion layer that combines them, with <Fig id="satya-layers" /> separate analysis layers inside the audio path alone. It scans uploaded images, audio and video for manipulation, verifies a caller against an enrolled voiceprint, and monitors a live call over a websocket while it is happening.
+
+<Fig id="satya-weights">Every model is trained and shipped</Fig>, quantised to INT8 so <Fig id="satya-local">inference runs on the user's own machine</Fig>. No audio or video leaves it.
+
+</Section>
+
+<Section label="What was there before">
+
+Voice cloning got good and cheap at the same time, and the fraud followed immediately. The scam that motivated this is the one where a parent gets a call in their child's voice asking for money urgently, and the voice is real enough that they send it.
+
+The detectors that exist mostly analyse the spectrum, and modern text-to-speech has got good enough that the spectrum looks fine. They also, almost universally, run in the cloud, which means using them requires uploading a recording of your family under duress to somebody else's server.
+
+I started this for a hackathon problem statement on domain-specialised agents with compliance guardrails, and kept building it after the hackathon ended, because the guardrail part turned out to be the interesting part.
+
+</Section>
+
+<Section label="What I built">
+
+**The live call path.** Audio is captured in the browser through an audio worklet, streamed over a websocket in chunks, and passed through the full audio ensemble in near real time, with the verdict updating as the call goes on rather than after it.
+
+**The audio ensemble.** Nine layers: self-supervised features, speech-encoder features, a raw-waveform network that skips preprocessing entirely, prosodic micro-jitter, breathing patterns, formant transitions, phase coherence between harmonics, cross-chunk consistency over time, and a weighted fusion that combines them into one decision.
+
+**Media forensics.** Uploaded images run through five checks: error level analysis, frequency patterns, metadata signatures, a trained classifier and compression analysis. Video runs a spatial model over frames and a temporal model over motion.
+
+**Identity and evidence.** Voiceprint enrolment so a caller can be verified against a known speaker, plus scan history, cases and generated forensic reports.
+
+</Section>
+
+<Section label="Two decisions worth defending">
+
+<Decision
+  title="A hard rule that can overrule the neural networks"
+  instead="Let the ensemble decide. It is trained, it is calibrated, and hand-written rules are what machine learning replaced."
+>
+
+Three of the nine audio layers check for physiological impossibility rather than for statistical suspicion: breathing patterns, prosodic micro-jitter, formant transitions. Things a vocal tract has to do and a generator does not know it needs to fake. If one of them fires, it vetoes the ensemble even when every neural layer says human, and it writes a reason string saying exactly what was impossible.
+
+The reason is that this is a compliance context, not a benchmark. A neural score is not auditable. When a system tells someone to stop a transaction, the person on the other end of that has to be able to read why, and "the model returned 0.87" is not a reason anybody can act on or appeal.
+
+That decision is also the one that broke, which is the next section.
+
+</Decision>
+
+<Decision
+  title="Everything runs on the user's machine"
+  instead="Run the models server-side. They are large, the phone is slow, and updating a server is easier than shipping a release."
+>
+
+Server-side inference would be faster, cheaper to operate, and far easier to iterate on. The models are big, and a phone is a bad place to run a transformer.
+
+But the input is a recording of a family member on a call, often at the worst moment of their week. Uploading that to make the detection slightly better is the wrong trade at any latency. So the weights are quantised to INT8, roughly a quarter of their original size, exported to a portable runtime, and run locally.
+
+The honest cost is that a model bug ships as a release rather than a deploy, and old versions stay in the wild.
+
+</Decision>
+
+</Section>
+
+<Section
+  label="What broke"
+  tone="red"
+  note={
+    <>
+      <p className="label mb-2">The gap</p>
+      <p>
+        Every layer was calibrated on clean training data and deployed against
+        phone codecs and messaging-app compression.
+      </p>
+    </>
+  }
+>
+
+**Two days before a demo, the system flagged my boss.**
+
+His real voice, live on a call, came back as AI-generated. Then his real photo, a group selfie sent over WhatsApp, came back as AI-generated at 69 per cent confidence.
+
+Same root cause both times, and it is the oldest one there is. Real human speech over phone codecs carries narrowband artifacts and codec jitter that look, to a detector trained on clean audio, exactly like synthesis artifacts. WhatsApp re-encodes photos with heavy compression, and both the pretrained classifier and the general-purpose vision model score compressed phone selfies in the 0.85 to 0.97 AI-probability band.
+
+The biological veto, the decision I was proudest of, was the worst offender. It was firing on physiological impossibility that was really a codec.
+
+The fixes came in three shapes.
+
+**Thresholds went up, and the veto lost its hair trigger.** The spoof threshold moved from 0.50 to <Fig id="satya-threshold" />. The veto's biomarker bar went from 0.90 to 0.95 and can no longer fire at all unless the neural detector already agrees above 0.65. The hard rule kept its authority over the ensemble and gave up the right to act alone.
+
+**One bad chunk became a warning rather than an alarm.** Escalation now needs two consecutive matching chunks, about ten seconds. And an operator can mark the speaker as authentic, which silences flagging for a minute. A detector a human cannot overrule is not usable in a live call, whatever its accuracy.
+
+**On images, the system now trusts the prior when it knows its own signals are unreliable.** If the platform fingerprint is unambiguous and pixel-level reliability measures low, the verdict defaults to authentic, because almost every image that arrives over a messaging app is a real photo. An explicit AI signature in the metadata still overrides that.
+
+**And then the part I actually find embarrassing.** After the image detector was fixed and correctly returned authentic, the API endpoint still returned AI-generated. The endpoint had its own safety layer that re-counted failing forensic checks and forced a synthetic verdict at two or more, which is exactly the shape a compressed selfie produces. Two components were deciding the same thing with different information, and the one with less information won. The endpoint now detects when the detector has applied its compression-aware override and refuses to flip it.
+
+</Section>
+
+<Section label="What I would do differently">
+
+**Calibrate on the deployment distribution, not the training distribution.** The phone-codec case was in front of me the entire time. I did not test it until it embarrassed me in front of the person it was accusing.
+
+**Never let two layers independently decide the same thing.** The safety layer existed because I did not fully trust the detector. The correct response to not trusting a component is to fix it or to test it, not to wrap it in a second component that guesses from less information.
+
+**Keep the repository honest.** A remaining-work file in the repo, five months old, says the models are untrained and the server will not start. Both were true when it was written and neither is true now. A stale document in a repository is a claim, and that one is false.
+
+</Section>
+
+<Stack>
+Python 3.11, FastAPI, websockets, PyTorch, Wav2Vec2, Whisper, XLS-R, Audio Spectrogram Transformer, RawNet3, ECAPA-TDNN, ViT-B/16, R3D-18, DeBERTaV3 with LoRA, ONNX Runtime with INT8 quantisation, librosa, MediaPipe, OpenCV. React, TypeScript, Vite, Tailwind. SQLite, JWT.
+</Stack>
+
+<Ledger ids={["satya-layers", "satya-weights", "satya-local", "satya-threshold"]} />

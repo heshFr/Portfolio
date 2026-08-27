@@ -1,10 +1,192 @@
-export const metadata = { title: "altus" };
+import { CaseHeader, Section, Decision, Stack, Ledger, ScreenSlot } from "@/components/case";
+import { Fig } from "@/components/claim";
 
-# altus
+export const metadata = {
+  title: "Altus Corp Dashboard",
+  description:
+    "The internal platform a Mumbai company runs its business on: work and approvals, goals, reviews, payroll, collections, hiring and training. Lead developer since May 2026.",
+  openGraph: { images: [{ url: "/og/altus.png", width: 1200, height: 630 }] },
+  alternates: { canonical: "/work/altus" },
+};
 
-Scaffold placeholder. This file proves the MDX pipeline compiles and that a
-case study can be promoted by dropping an `.mdx` file into `app/work/`.
+<CaseHeader
+  title="Altus Corp Dashboard"
+  role="Lead developer"
+  period="May 2026 to now"
+  lede="Altus Corp used to run on spreadsheets. This is the system it runs on now."
+/>
 
-| Column | Value |
-| --- | --- |
-| GFM tables | working |
+<Section
+  label="The size of it"
+  note={
+    <>
+      <p className="label mb-2">Counted from</p>
+      <p>
+        The production repository, on 27 Aug 2026. Underlined figures open
+        their own source.
+      </p>
+    </>
+  }
+>
+
+In <Fig id="altus-months" /> it went from a task tracker to the system the whole company runs on: <Fig id="altus-screens" /> screens, <Fig id="altus-tables" /> database tables and about <Fig id="altus-lines" /> lines of code, with <Fig id="altus-crons" /> jobs that run on their own overnight and <Fig id="altus-migrations" /> database migrations behind them.
+
+It ships as <Fig id="altus-clients" /> separate clients off one backend: the web app, a cross-platform mobile app, and a native Android app. I am the only developer on all three, and it has been deploying to production continuously since May.
+
+</Section>
+
+<Section label="What was there before">
+
+Spreadsheets. About <Fig id="altus-spreadsheets" /> of them, and they were the record. Attendance in one workbook, salary in another, receivables in a third, a weekly checklist in a fourth, and a task list that took whatever shape the last person to touch it preferred.
+
+The problem with a spreadsheet as a system of record is not that it is slow. It is that it has no memory. Nobody could answer who approved a payment, what a number looked like last Tuesday, or why a figure changed between two versions of the same file. The record was whatever the last person to hit save said it was.
+
+I was asked for a task tracker. What the company needed was something that could be asked questions about its own past.
+
+</Section>
+
+<Section
+  label="What I built"
+  note={
+    <>
+      <p className="label mb-2">Grouped by</p>
+      <p>
+        What it does for the people using it, not by how the code is laid out.
+      </p>
+    </>
+  }
+>
+
+**Work and approvals.** Tasks with a doer and an initiator, a customisable status model, a two-stage approval chain from manager to admin, a kanban board, recurring work that materialises on schedule, duplicate detection, bulk edits, and import and export through Excel. Underneath it, an event-sourced timer: every start, pause and resume is an immutable event, sessions roll up into a ledger, and a task that goes back for revision keeps its total across every revision.
+
+**Goals and performance.** A cascade from yearly targets down through quarterly, monthly and weekly goals, with weighted scoring, commit and approve gates, carry-over and spillover handled by scheduled jobs, and PDF reports for the board. Alongside it a performance management system, 360 degree appraisals, KPI assignments and a daily score per person.
+
+**Money.** A payroll engine that holds pay structures, prorates joiners and leavers, applies adjustments and waive-offs, supports partial disbursement with carry-forward, and generates payslips and annual statements as PDFs. Next to it a receivables tracker with contracts, instalment schedules, collections, follow-ups and payment cycles. Both run every month against real money, which sets the tolerance for getting it wrong.
+
+**People.** The whole employment arc in one place: candidate intake, interview stages, onboarding with document collection, offer and confirmation letters, policy acknowledgement with signatures, training and induction, and exit paperwork with final settlement.
+
+**The platform underneath.** Firebase issues identity, Supabase Postgres holds the data with row-level security keyed on the Firebase user, nearly every table has an append-only event sibling, and a notification bus fans out to email, Slack, WhatsApp and web push with retries and per-person channel preferences.
+
+<ScreenSlot>
+It is an invite-only internal system and I do not have clearance to publish its
+screens. Rather than fill the space with something decorative, it is empty. If
+clearance comes, redacted screens belong here.
+</ScreenSlot>
+
+</Section>
+
+<Section label="Three decisions worth defending">
+
+<Decision
+  title="Two identity vendors instead of one"
+  instead="Use Supabase auth, since the data already lives in Supabase, and delete a vendor."
+>
+
+Firebase issues identity. Supabase holds the data. A Firebase token is handed to the Supabase client so row-level security policies evaluate against the Firebase user id.
+
+That is a bridge I have to maintain, and it introduces a class of bug where two identity systems disagree. I kept it for one reason: revocation. The session cookie is verified on every request with a revocation check, so someone who is deactivated loses access on their next request rather than whenever their token happens to expire. In a system holding everyone's salary, the gap between those two moments is the whole problem.
+
+The second half of that decision matters more than the first. Because the policies are enforced in the database rather than in application code, a bug in a query cannot leak another person's pay. The rule lives one layer below the code most likely to be wrong.
+
+</Decision>
+
+<Decision
+  title="Every mutation writes an event, and money is never a float"
+  instead="Update the row, trust the updated_at column, and keep the schema half the size."
+>
+
+Almost every table has an append-only events sibling: task events, employee events, settings events, document events, follow-ups on receivables. Money is a fixed-point decimal in rupees everywhere, never a floating point number.
+
+The reason is the question people actually ask. Nobody asks what a payroll figure is. They ask why it is that, and who changed it, and when. A row that has been overwritten in place cannot answer, and the moment it cannot answer, the system is a spreadsheet with better fonts.
+
+The cost is real and it is visible in the numbers at the top of this page. Writes are heavier. A large part of why there are <Fig id="altus-tables" /> tables is this decision showing up in the count.
+
+</Decision>
+
+<Decision
+  title="The analytics agent cannot write SQL"
+  instead="Text to SQL. Ask a question, the model writes the query, you run it. It is an afternoon of work and it answers everything."
+>
+
+Leadership wanted to ask the sales pipeline questions in plain English and get a chart back. The agent I built has exactly one tool, and its shape is fully whitelisted: the model picks a metric from a closed set, picks a dimension to group by from a closed set, and may add filters from a whitelist and a date window. There is nowhere to put SQL. The aggregation runs in memory over the same read layer the interface uses, so the caller's own permissions are the only door to the data, and the row count is capped so one question cannot scan everything. It returns a typed series the page drops straight into a chart, plus a short written read.
+
+The cost is that it can only answer questions I anticipated. A text-to-SQL agent answers more of them. It also, eventually, answers one it should not have, against a database that holds every salary in the company.
+
+</Decision>
+
+</Section>
+
+<Section
+  label="What broke"
+  tone="red"
+  note={
+    <>
+      <p className="label mb-2">Two failures</p>
+      <p>
+        One where the system recorded something untrue, and one I diagnosed
+        wrongly for weeks.
+      </p>
+    </>
+  }
+>
+
+**The system lied about something it had not done.**
+
+HR could issue an offer letter from the app. Issuing rendered the PDF, archived it, and marked the letter sent. It never called the mailer. So the record said the letter had gone out, the confirmation told the user it had gone out, and the recipient had nothing.
+
+In a system whose entire justification is being the truthful record, it had recorded a fiction.
+
+The fix was small. Issuing now actually emails the PDF, and the confirmation tells the truth in both directions: either issued, archived and emailed to a named person, or issued but not emailed because there is no address on file. The lesson was not small. A status field is a claim about the world, and if nothing verifies it, it is only a claim about the code path that set it. I went back through the other places the app writes sent, approved or paid, and checked each one against the thing it was claiming had happened.
+
+**And a slower one: saves that silently failed.**
+
+People started reporting that their work had not gone through. Intermittently, mostly on the heaviest dashboards, never reproducible on demand. It read like an outage and I treated it like one for too long.
+
+It was connection-pool exhaustion. Each serverless instance was holding up to eighteen Postgres connections through the pooler, and under load the dashboard's unindexed scans held them long enough that ordinary writes could not get one. I cut the per-instance pool to <Fig id="altus-pool" /> and tightened idle and lifetime recycling, and the symptom stopped.
+
+That is not the cure. The cure is indexing the scans that hold a connection that long. Until that is done the pool size is a tourniquet, and I would rather write that down than let a stopped symptom read as a solved problem.
+
+</Section>
+
+<Section label="Attendance, and why it is gone">
+
+The largest single thing I built here is no longer running.
+
+Attendance was fingerprint punch in and out using passkeys, GPS geofencing, per-person schedules with different rules for different worker types, leave accrual on a calendar half-year cycle, a holiday calendar, and a payroll chain where late marks and half days graded into the payable days the salary engine actually used.
+
+The part worth describing is the anti-proxy stack, because clocking in for an absent colleague is the failure mode every attendance system has. A punch was bound to one device HR had approved, attested with Play Integrity so a modified build could not fake it, checked for mock GPS, protected against replay by a server-issued nonce, and on the web gated to the office network, which closed a bypass where anyone could clock in from a browser at home.
+
+The decision I would defend hardest is how it was switched on. The failure modes are not symmetric. A missed fake punch costs the company a few hours of wages. A false positive stops a real person from clocking in, which means they do not get paid and cannot fix it themselves. So integrity checking ran in report mode first, writing flagged punches to a review queue that punished nobody, and even in enforce mode it never blocks on an unverified attestation, so a gap in provisioning could not lock anyone out. It fails open on purpose, because the expensive mistake is the other one.
+
+The company then changed its HR process and the module was retired. It ran in production for months and then stopped being the answer to the question it was built for. I would rather say that plainly than quietly leave it on a list of features.
+
+</Section>
+
+<Section label="What I would do differently">
+
+**<Fig id="altus-tables" /> tables is too many.** Some of that is the audit siblings earning their place. A lot of it is that each module got its own tables when three of them wanted the same shape. There should be one generic approval chain and one generic recurring-schedule table, not a version of each per module.
+
+**I would write the indexes with the queries.** The pool incident was a scheduling problem wearing an infrastructure costume. Those scans were slow from the day they were written, and nothing forced me to look until they took the site down.
+
+**I would not have let the documentation drift.** The internal knowledge base still describes attendance as a live module. Documentation that has drifted from the system is worse than none, because it looks checked.
+
+</Section>
+
+<Stack>
+Next.js 16, React 19, TypeScript strict, Tailwind v4, Supabase Postgres, Drizzle ORM, Firebase Auth, TanStack Query and Table, Radix, Recharts, Zod, Resend and react-email, pdfkit and Puppeteer, Slack and WhatsApp Cloud APIs, web push, Sentry, Vitest and Playwright, Expo and React Native, Kotlin, Vercel.
+</Stack>
+
+<Ledger
+  ids={[
+    "altus-months",
+    "altus-screens",
+    "altus-tables",
+    "altus-lines",
+    "altus-crons",
+    "altus-migrations",
+    "altus-clients",
+    "altus-spreadsheets",
+    "altus-pool",
+    "altus-commits",
+  ]}
+/>

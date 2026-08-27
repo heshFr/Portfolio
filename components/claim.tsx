@@ -43,7 +43,6 @@ export function Fig({ id, children }: { id: ClaimId; children?: ReactNode }) {
       type="button"
       onClick={() => toggle(id)}
       aria-expanded={isOpen}
-      aria-controls={`note-${id}`}
       className={`mark ${isNumeral ? "num" : ""} ${isOpen ? "mark-open" : ""}`}
     >
       {text}
@@ -57,16 +56,20 @@ export function Margin({ standing }: { standing?: ReactNode }) {
   const record: Claim | null = open ? CLAIMS[open] : null;
 
   if (!record) {
-    return standing ? <aside className="in-margin note mt-6">{standing}</aside> : null;
+    return standing ? (
+      <aside className="in-margin note mt-6" aria-live="polite">
+        {standing}
+      </aside>
+    ) : null;
   }
 
   return (
-    <aside id={`note-${record.id}`} className="in-margin note mt-6 note-panel">
+    <aside className="in-margin note mt-6 note-panel" aria-live="polite">
       <p className="label mb-2">
         {record.status === "withheld" ? "Withheld" : record.label}
       </p>
       <p>{record.source}</p>
-      <p className="mt-2 opacity-70">
+      <p className="mt-2">
         {record.status === "reported" ? "Reported, not counted here. " : ""}
         Checked {record.checked}.
       </p>

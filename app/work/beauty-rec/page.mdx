@@ -1,10 +1,209 @@
-export const metadata = { title: "beauty-rec" };
+import { CaseHeader, Section, Decision, Stack, Ledger } from "@/components/case";
+import { Fig } from "@/components/claim";
 
-# beauty-rec
+export const metadata = {
+  title: "Beauty recommendation system and storefront",
+  description:
+    "A recommendation engine over two million real shopping interactions, with foundation shade matching from a selfie, a working storefront, and an evaluation that says what it actually found.",
+  openGraph: { images: [{ url: "/og/beauty-rec.png", width: 1200, height: 630 }] },
+  alternates: { canonical: "/work/beauty-rec" },
+};
 
-Scaffold placeholder. This file proves the MDX pipeline compiles and that a
-case study can be promoted by dropping an `.mdx` file into `app/work/`.
+<CaseHeader
+  title="Beauty recommendation system and storefront"
+  role="Solo build"
+  period="2026"
+  lede="A shop that recommends foundation from a photo of your face, and tells you when it is not sure."
+/>
 
-| Column | Value |
+<Section
+  label="The size of it"
+  note={
+    <>
+      <p className="label mb-2">Checkable</p>
+      <p>
+        Every figure on this page comes out of an evaluation run committed to
+        the repository. Clone it and you get the same numbers.
+      </p>
+    </>
+  }
+>
+
+Trained on <Fig id="beauty-interactions" /> real Amazon shopping interactions across a catalog of <Fig id="beauty-products" /> beauty products, pruned down from <Fig id="beauty-raw" /> raw listings. It answers in about <Fig id="beauty-latency" /> milliseconds at the median. <Fig id="beauty-tests" /> test functions cover it, including the cases where it is supposed to fail rather than guess.
+
+It is a solo build, and it is a whole product rather than a notebook: the recommender is a standalone library with no web framework imports, the API is a thin adapter over it, and the storefront on top has browsing, filters, cart, checkout, accounts and order history, priced in rupees with tax handled properly and every price traced back to where it came from.
+
+</Section>
+
+<Section
+  label="What was there before"
+  note={
+    <>
+      <p className="label mb-2">The measurement first</p>
+      <p>
+        I profiled the corpus before designing anything, and what it said
+        decided the architecture.
+      </p>
+    </>
+  }
+>
+
+Beauty is the category where recommendation is hardest and returns are worst, and the two facts are the same fact. A wrong foundation shade is the single biggest reason an order comes back, and no amount of collaborative filtering over purchase history tells you what colour someone's skin is.
+
+So I measured the data before designing anything, and the measurement decided the architecture. In the Amazon beauty corpus, <Fig id="beauty-onereview" /> per cent of reviewers have exactly one interaction. Mean 1.07 reviews per user, median 1. Cold start is not an edge case to handle gracefully. It is the majority of the traffic, and the system had to be built for that population first rather than for the small warm tail that makes the metrics look good.
+
+</Section>
+
+<Section label="What I built">
+
+**Skin analysis.** A selfie goes through face mesh landmarking, patches are sampled from the cheeks and forehead, and the colour is converted from sRGB into CIELAB so it can be reasoned about perceptually rather than as screen values. That lands on a Monk Skin Tone bin and an undertone, with a confidence score attached. When confidence is low the system says so instead of guessing.
+
+**Retrieval.** <Fig id="beauty-retrievers" /> retrievers run in parallel and cut 60,000 products to about 500 candidates: attribute matching over ingredients and shades, which is the one that carries cold start; semantic similarity over product text; collaborative filtering, which is empty for a user with no history; and popularity.
+
+**Ranking.** A LambdaMART model over 23 features takes those 500 down to about 50. The features include which retriever proposed the item and how it ranked there, so provenance is part of what the model reasons about.
+
+**Re-ranking.** Three passes shape the final set rather than the individual items: near-duplicate suppression, a return-risk penalty, and diversity with brand and category caps. Ten near-identical niacinamide serums can each be individually relevant and still be a useless answer.
+
+**Routine building.** Coherent morning and evening regimens where ingredient conflicts are resolved during selection rather than flagged afterwards, because a warning attached to a recommendation is a way of making the user do the work.
+
+**Graceful degradation.** The API starts and serves useful recommendations with no build artifacts at all. A missing artifact removes a retriever, an untrained ranker falls back to a linear scorer, absent embeddings skip diversity re-ranking, and the health endpoint reports exactly what is missing. You can clone it and see it work before you run anything.
+
+</Section>
+
+<Section label="Three decisions worth defending">
+
+<Decision
+  title="No vector database"
+  instead="Put the embeddings in a vector store. Everyone does, and it is one line of config."
+>
+
+Exact brute-force search over 60,000 by 384 float32 is a single BLAS call in under two milliseconds. An approximate index would add a dependency and give up recall to solve a problem this catalog does not have.
+
+It also matches the constraint the client actually operates under, where inference runs on phones, kiosks and in-store mirrors rather than in a data centre. A dependency that assumes a server is a dependency that has to be removed later.
+
+</Decision>
+
+<Decision
+  title="Asymmetric filtering, and a temporal split that makes the numbers worse"
+  instead="Standard symmetric 5-core, and a random train and test split. It is what the papers do."
+>
+
+Symmetric 5-core collapsed 247,042 interactions to zero across seven passes. The density profile explains it: the sparsity is entirely user-side, so the filter has to be asymmetric, users at three and items at five.
+
+The split matters more. A random split lets the model observe a user's future purchases while predicting their past, which inflates every metric and is the most common silent error in recommender evaluation. I used a global temporal cutoff instead. My numbers are lower than a random split would have given me. They are also the only ones that would survive contact with a live system.
+
+</Decision>
+
+<Decision
+  title="The system is allowed to say it does not know"
+  instead="Always return a shade. A confident answer converts and an abstention does not."
+>
+
+When shade confidence is low, the interface says so rather than picking the nearest bin and hoping.
+
+On paper that costs conversion. In practice a wrong shade costs a return, a refund, the shipping both ways, and a customer who does not come back. The whole reason this category has a returns problem is systems that would rather be confident than correct.
+
+</Decision>
+
+</Section>
+
+<Section
+  label="What broke"
+  tone="red"
+  note={
+    <>
+      <p className="label mb-2">The worst bug in the project</p>
+      <p>
+        And the only one that made the product visibly wrong to a person
+        using it.
+      </p>
+    </>
+  }
+>
+
+**I poisoned my own training data, and it inverted the model.**
+
+Searching for "serum" returned mascara, hair conditioner, tea-tree shampoo and deodorant. Every query returned the same list.
+
+My first diagnosis was wrong, and it was wrong in an instructive way. I had just added a popularity retriever, and popularity emits higher raw scores than semantic similarity, so obviously popularity was drowning the search. I made the retrieval budgets intent-aware and disabled diversity re-ranking for explicit text queries, where every good result legitimately resembles every other good result. Both changes were correct. Both stayed. Neither fixed anything.
+
+What cracked it took two minutes: run the trained ranker and the linear fallback over the same candidates and compare. The trained model was putting an item with a semantic score of 0.00 and an attribute score of 0.00 in first place. An item scoring zero on everything was winning, which is an inverted signal, which points at training data rather than at inference.
+
+When assembling the training set, if retrieval missed the ground-truth item I injected it into the group as a fabricated candidate with a raw score of 0.0. Retrieval recall is <Fig id="beauty-recall" /> per cent. So in <Fig id="beauty-poison" /> per cent of training groups, the single positive example scored zero on every retriever, and the model learned exactly what I had taught it: zero-score items are the correct answer. At serving time it promoted precisely the candidates with no retriever signal at all.
+
+The fix was to score injected targets honestly, outside the top-k truncation, and to drop the queries where no honest score exists, which turned out to be 11 out of 14,000. After retraining, semantic score carried 0.831 of the model's gain and searching for "serum" returned serums.
+
+Two things came out of that, and the second one is the uncomfortable one.
+
+A placeholder value is a label. A raw score of 0.0 looked like "no information". To a gradient-boosted tree it was the most predictive feature in the dataset, pointing the wrong way. A sentinel that correlates with the target is not a sentinel.
+
+And my first explanation was plausible, mechanically real, and not the cause. I reasoned from a mechanism I knew existed instead of from evidence about what was actually happening. The controlled comparison that solved it should have been the first thing I did, not the fourth.
+
+</Section>
+
+<Section
+  label="What the numbers actually say"
+  note={
+    <>
+      <p className="label mb-2">Source</p>
+      <p>
+        reports/evaluation.json, committed to the repository. The accuracy
+        figures describe the three-retriever configuration.
+      </p>
+    </>
+  }
+>
+
+Here is where it stands, and it is not where I wanted it.
+
+| Configuration | hit@20 |
 | --- | --- |
-| GFM tables | working |
+| Twenty most-reviewed products, the same list for everyone | 0.0504 |
+| Full pipeline, re-ranking switched off | 0.0162 |
+| Semantic retrieval alone | 0.0127 |
+| Full pipeline as shipped | 0.0116 |
+
+The full system loses to its own semantic retriever, loses to itself with re-ranking turned off, and <Fig id="beauty-baseline">loses to a single global bestseller list</Fig> by about four times. I am not going to dress that up, and I am not going to quote a relevance improvement, because there is not one to quote.
+
+Two causes, and neither of them is a defect in the code.
+
+**Retrieval recall is the binding constraint.** Measured directly, the ground-truth item enters the candidate pool <Fig id="beauty-recall" /> per cent of the time. Ranking cannot recover an item that retrieval never proposed, so hit-rate is capped at 0.15 before the ranker does anything at all. Every hour spent on ranking was an hour spent on the wrong stage.
+
+**The system suppresses popularity on purpose, and this metric rewards it.** Diversity, brand caps and category caps all actively demote whatever is over-represented, because letting popularity dominate collapses every cold-start user onto one bestseller list, which is the generic experience the product exists to replace. Personalisation measures <Fig id="beauty-personalisation" />, meaning almost every user gets a distinct list. On a next-item benchmark, where the most-bought items are tautologically the items most likely to be bought next, that costs exactly what it looks like it costs.
+
+That is an argument, not an excuse. The honest summary is that the architecture is defensible and the offline number is bad, and the useful thing was that the evaluation falsified part of the design rather than confirming it.
+
+**On fairness.** I measured accuracy across Monk skin tone bins, and published the caveat that makes it nearly unusable: real skin tone was recoverable for only about <Fig id="beauty-fairness" /> per cent of users and the rest are sampled from priors, so the figures describe model behaviour across assigned labels, not real-world equity. It is still worth measuring, because the alternative is not knowing.
+
+</Section>
+
+<Section label="What I would do differently">
+
+**Fix retrieval recall before anything else.** Everything downstream is capped by that 15 per cent, and I spent time on stages that could not move the number.
+
+**Retrain the ranker with the popularity source.** It was added after the model was trained, so the ranker has no learned weight for a retriever it now receives candidates from.
+
+**Fix the evaluation document.** It currently quotes an earlier run whose numbers no longer reproduce against the committed artifact sitting next to it. That is the same failure as the drifted documentation on my other project, and it is worse here, because the document opens by promising that nothing in it is quoted from memory.
+
+</Section>
+
+<Stack>
+Python 3.10, FastAPI, Pydantic v2, LightGBM, implicit for ALS, sentence-transformers with MiniLM-L6-v2, MediaPipe, OpenCV, NumPy and pandas, pytest and Hypothesis. Next.js 16, React 19, TypeScript, Tailwind v4.
+</Stack>
+
+<Ledger
+  ids={[
+    "beauty-interactions",
+    "beauty-products",
+    "beauty-raw",
+    "beauty-latency",
+    "beauty-tests",
+    "beauty-retrievers",
+    "beauty-onereview",
+    "beauty-recall",
+    "beauty-poison",
+    "beauty-baseline",
+    "beauty-personalisation",
+    "beauty-fairness",
+  ]}
+/>
