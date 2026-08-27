@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Fig, Margin, Sourced } from "@/components/claim";
+import { Desk } from "@/components/desk";
 import { Comparison } from "@/components/figures";
-import { Screen } from "@/components/media";
 import { Typeset } from "@/components/typeset";
 import { PROJECTS } from "@/content/projects";
 
@@ -48,6 +48,8 @@ export default function Home() {
         </section>
       </Sourced>
 
+      <Desk />
+
       {/* ------------------------------------------------------------ Altus */}
       <Sourced>
         <section className="record pb-20 md:pb-24">
@@ -74,13 +76,6 @@ export default function Home() {
             money moves through the payroll and the collections every month,
             which sets the tolerance for getting it wrong.
           </p>
-          <Screen
-            src="/media/altus-kanban-redacted.jpg"
-            height={1099}
-            alt="The Altus kanban board, task cards redacted"
-            caption="The board. Every card is redacted at source, because they carry colleagues' names and client payment chases."
-          />
-
           <p className="mt-5">
             <Link href="/work/altus" className="link">
               How it was built

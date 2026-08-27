@@ -232,6 +232,27 @@ body {
      screenshot reads as an object, not that the page moves.
   ------------------------------------------------------------------------- */
 
+  /* -------------------------------------------------------------------------
+     The desk band. Full bleed, because a surface you are leaning over should
+     not be trapped inside a reading measure.
+  ------------------------------------------------------------------------- */
+
+  .desk-band {
+    margin-block: 1rem 3.5rem;
+  }
+
+  .desk-stage {
+    width: 100%;
+    height: clamp(22rem, 52vh, 36rem);
+    /* The desk surface. The canvas over it is transparent, so this is the only
+       place the tone is defined and it cannot drift from the rest of the site. */
+    background: var(--color-panel);
+    border-block: 1px solid var(--color-rule);
+    touch-action: pan-y;
+    overflow: hidden;
+    contain: layout paint;
+  }
+
   .tilt-stage {
     perspective: 1100px;
     perspective-origin: 50% 50%;

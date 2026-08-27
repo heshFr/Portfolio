@@ -52,6 +52,29 @@ small pointer-tracked rotation, disabled for touch and for reduced motion. The
 first screen on any page should be `priority`, because a lazy-loaded LCP element
 costs about 1.6s of load delay for nothing.
 
+## The desk scene
+
+`components/desk-scene.tsx` is a real WebGL scene: a perspective camera, the
+three screens as textured prints with card stock and thickness, a directional
+shadow map onto a `shadowMaterial` receiver, contact shadows, and a locally
+generated environment map. Nothing is fetched from a CDN.
+
+Two rules keep it from wrecking the page:
+
+- **The canvas is transparent and CSS paints the desk** with `--color-panel`.
+  Do not put a ground plane back in and colour it in the scene: three's colour
+  management linearises material colours twice under this setup and the surface
+  drifts several stops away from the token.
+- **It only goes live where the device can afford it**: fine pointer, viewport
+  at least 62rem, four or more cores, no reduced-motion preference, and the band
+  near the viewport. Everywhere else `public/media/desk-poster.jpg` is shown,
+  which is a render of the same scene at its resting camera. Ungated, the WebGL
+  bundle costs about 950ms of blocked main thread on a throttled phone and takes
+  the home page from 95 to 74.
+
+To re-render the poster after changing the scene, screenshot `.desk-stage` at
+2x with the pointer centred, then downscale to 2000px wide.
+
 ## Regenerating the OG images
 
 `public/og/*.png` were rendered at 1200x630 from a temporary route using the
