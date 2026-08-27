@@ -18,8 +18,8 @@ export default function Home() {
             Systems that hold work, approvals, payroll and records, where being
             wrong is expensive and every change has to leave a trace. I am
             Hetesh Vichare. I lead the build of one of those at Altus Corp in
-            Mumbai, and I am in my second year of a data science degree. Outside
-            that I build AI products end to end, model to interface.
+            Mumbai, alongside a data science degree. Outside both, I build AI
+            products end to end, model to interface.
           </p>
           <Margin
             standing={
