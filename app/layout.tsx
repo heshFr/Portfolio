@@ -23,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://hetesh.dev"),
+  metadataBase: new URL("https://heshbuilds.vercel.app"),
   title: {
     default: "Hetesh Vichare",
     template: "%s / Hetesh Vichare",

@@ -1,4 +1,4 @@
-# hetesh.dev
+# heshbuilds.vercel.app
 
 Portfolio site. Next.js 16 (App Router), React 19, TypeScript strict, Tailwind v4,
 MDX for case studies. No database, no CMS, no analytics.
@@ -60,6 +60,12 @@ card, and delete the route again.
 
 ## Deploying
 
-Nothing here is environment-specific. `pnpm build` produces a fully static site.
-Set the real domain in `metadataBase` in `app/layout.tsx` and in `app/sitemap.ts`
-and `app/robots.ts` before going live.
+Nothing here is environment-specific. `pnpm build` produces a fully static site,
+deployed on Vercel at https://heshbuilds.vercel.app.
+
+The domain appears in exactly three places, and all three have to move together
+or the canonical URLs, the OG image URLs and the sitemap will disagree:
+
+- `metadataBase` in `app/layout.tsx`
+- `SITE` in `app/sitemap.ts`
+- the sitemap URL in `app/robots.ts`

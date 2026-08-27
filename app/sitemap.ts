@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { PROJECTS } from "@/content/projects";
 
-const SITE = "https://hetesh.dev";
+const SITE = "https://heshbuilds.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = ["", "/work", "/about", "/resume"];
