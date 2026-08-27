@@ -54,7 +54,7 @@ export const PROJECTS: Project[] = [
     slug: "marketplus",
     name: "MarketPlus",
     summary:
-      "A live markets dashboard for US and international stocks, crypto, forex and commodities, with written explanations of why a price moved.",
+      "A live markets dashboard for US and international stocks, crypto, forex and commodities. It writes an explanation of why a price moved, then scores its own forecasts against what actually happened and corrects its confidence from the result.",
     role: "Solo build",
     period: "Launching Q3 2026",
     caseStudy: false,
@@ -80,6 +80,16 @@ export const PROJECTS: Project[] = [
     period: "2026",
     caseStudy: false,
     rank: 6,
+  },
+  {
+    slug: "heshclicks",
+    name: "HeshClicks",
+    summary:
+      "A desktop auto-clicker. You set the clicks per second and the number of clicks, and it does exactly that.",
+    role: "Solo build",
+    period: "2026",
+    caseStudy: false,
+    rank: 7,
   },
 ];
 

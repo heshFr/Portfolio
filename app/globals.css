@@ -22,7 +22,7 @@
   --text-body: 1.0625rem;
   --text-body-lg: 1.1875rem;
   --text-title: clamp(1.55rem, 3.2vw, 2.15rem);
-  --text-hero: clamp(1.85rem, 4.4vw, 2.9rem);
+  --text-hero: clamp(1.7rem, 3.5vw, 2.45rem);
 }
 
 /* ---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ body {
   .record {
     display: grid;
     grid-template-columns: [main] minmax(0, 62ch);
-    justify-content: start;
+    justify-content: center;
     column-gap: 2.5rem;
     width: 100%;
     max-width: 78rem;
@@ -176,7 +176,60 @@ body {
   @media (min-width: 62rem) {
     .in-margin {
       grid-column: margin;
+      /* Pin the note to the top of its section rather than letting grid
+         auto-placement drop it below every paragraph in the main column. */
+      grid-row: 1 / span 60;
+      align-self: start;
     }
+  }
+
+  /* -------------------------------------------------------------------------
+     The signature: a figure you can check. A dotted correction-red rule under
+     the value, and nothing else. No badge, no icon, no hover tooltip.
+  ------------------------------------------------------------------------- */
+
+  .mark {
+    color: inherit;
+    border-bottom: 1px dotted var(--color-red);
+    padding-bottom: 1px;
+    cursor: pointer;
+    animation: mark-in 420ms ease-out 520ms both;
+  }
+
+  .mark:hover {
+    border-bottom-style: solid;
+  }
+
+  .mark-open {
+    border-bottom-style: solid;
+    background: var(--color-panel);
+    box-shadow: 0 0 0 2px var(--color-panel);
+  }
+
+  .link {
+    border-bottom: 1px solid var(--color-rule);
+    padding-bottom: 1px;
+    transition: color 140ms ease, border-color 140ms ease;
+  }
+
+  .link:hover {
+    color: var(--color-red);
+    border-bottom-color: var(--color-red);
+  }
+
+  .note-panel {
+    background: var(--color-panel);
+    padding: 0.9rem 1rem;
+    border-radius: 3px;
+  }
+}
+
+@keyframes mark-in {
+  from {
+    border-bottom-color: transparent;
+  }
+  to {
+    border-bottom-color: var(--color-red);
   }
 }
 
@@ -190,6 +243,7 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }

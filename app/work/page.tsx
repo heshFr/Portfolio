@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Typeset } from "@/components/typeset";
 import { PROJECTS } from "@/content/projects";
 
 export const metadata = { title: "Work" };
@@ -20,7 +21,9 @@ export default function WorkIndex() {
               )}
               <span className="label shrink-0">{p.period}</span>
             </div>
-            <p className="mt-1">{p.summary}</p>
+            <p className="mt-1">
+              <Typeset>{p.summary}</Typeset>
+            </p>
           </li>
         ))}
       </ul>
