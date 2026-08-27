@@ -33,6 +33,25 @@ the prose and add its id to that page's `<Ledger ids={[...]} />`. If you cannot
 source it, give it `status: "withheld"` and say why. Do not print an unsourced
 number.
 
+## Media
+
+`public/media` holds the screens and one clip.
+
+- Satya Drishti and MarketPlus are Hetesh's own, captured from the live
+  deployment and from the repo, and shown as they are.
+- The Altus board is **redacted at source**: the card region is downsampled to
+  1/22 scale and blurred before the JPEG is written, so the names and client
+  details are gone from the file rather than hidden with CSS. Never publish a
+  raw `.shots` image from that repo. They contain colleagues' names, salaries
+  and attendance.
+- The clip is `preload="none"` behind a poster, so it costs nothing until
+  somebody presses play.
+
+Screens sit on `.tilt-plate` inside `.tilt-stage`: a real CSS perspective with a
+small pointer-tracked rotation, disabled for touch and for reduced motion. The
+first screen on any page should be `priority`, because a lazy-loaded LCP element
+costs about 1.6s of load delay for nothing.
+
 ## Regenerating the OG images
 
 `public/og/*.png` were rendered at 1200x630 from a temporary route using the

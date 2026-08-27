@@ -1,5 +1,6 @@
 import { CaseHeader, Section, Decision, Stack, Ledger } from "@/components/case";
 import { Figure, Layers } from "@/components/figures";
+import { Screen, ScreenRow, Thumb } from "@/components/media";
 import { Fig } from "@/components/claim";
 
 export const metadata = {
@@ -88,6 +89,19 @@ I started this for a hackathon problem statement on domain-specialised agents wi
 **Media forensics.** Uploaded images run through five checks: error level analysis, frequency patterns, metadata signatures, a trained classifier and compression analysis. Video runs a spatial model over frames and a temporal model over motion.
 
 **Identity and evidence.** Voiceprint enrolment so a caller can be verified against a known speaker, plus scan history, cases and generated forensic reports.
+
+<Screen
+  src="/media/satya-landing.jpg"
+  alt="The Satya Drishti landing page"
+  caption="The live deployment. This one is public, so these are the real screens rather than a redaction."
+  href="https://satyadrishti.vercel.app"
+  linkLabel="satyadrishti.vercel.app"
+/>
+
+<ScreenRow>
+  <Thumb src="/media/satya-scanner.jpg" alt="The media forensics scanner" label="Scanner: upload an image, audio or video for the five forensic checks." href="https://satyadrishti.vercel.app/scanner" />
+  <Thumb src="/media/satya-call.jpg" alt="The live call protection screen" label="Call protection: the verdict updates while the call is still going." href="https://satyadrishti.vercel.app/call-protection" />
+</ScreenRow>
 
 </Section>
 

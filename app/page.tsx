@@ -1,5 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Fig, Margin, Sourced } from "@/components/claim";
+import { Comparison } from "@/components/figures";
+import { Screen } from "@/components/media";
 import { Typeset } from "@/components/typeset";
 import { PROJECTS } from "@/content/projects";
 
@@ -24,6 +27,15 @@ export default function Home() {
           <Margin
             standing={
               <>
+                <Image
+                  src="/headshot.jpg"
+                  alt="Hetesh Vichare"
+                  width={900}
+                  height={1200}
+                  sizes="(min-width: 62rem) 18rem, 9rem"
+                  priority
+                  className="w-[9rem] lg:w-full max-w-[18rem] rounded-[3px] mb-4"
+                />
                 <p className="label mb-2">About the figures</p>
                 <p>
                   Every number on this site is a claim with a source. The ones
@@ -62,6 +74,13 @@ export default function Home() {
             money moves through the payroll and the collections every month,
             which sets the tolerance for getting it wrong.
           </p>
+          <Screen
+            src="/media/altus-kanban-redacted.jpg"
+            height={1099}
+            alt="The Altus kanban board, task cards redacted"
+            caption="The board. Every card is redacted at source, because they carry colleagues' names and client payment chases."
+          />
+
           <p className="mt-5">
             <Link href="/work/altus" className="link">
               How it was built
@@ -115,6 +134,18 @@ export default function Home() {
             . That is what the evaluation produced, so that is what I published,
             with the diagnosis of why.
           </p>
+          <div className="mt-7 border-y border-ink py-6">
+            <Comparison
+              max={0.0504}
+              rows={[
+                { label: "Twenty most-reviewed products, one list for everyone", value: 0.0504, display: "0.0504" },
+                { label: "Semantic retrieval alone", value: 0.0127, display: "0.0127" },
+                { label: "The full pipeline", value: 0.0116, display: "0.0116", mark: "as shipped" },
+              ]}
+            />
+          </div>
+          <p className="note mt-3">hit@20, higher is better. The full result set is on the case study.</p>
+
           <p className="mt-5">
             <Link href="/work/beauty-rec" className="link">
               How it was built, and what the numbers actually say

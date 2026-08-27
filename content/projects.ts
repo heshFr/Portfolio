@@ -15,6 +15,10 @@ export type Project = {
   caseStudy: boolean;
   /** Ordering on /work. Lower is higher up. */
   rank: number;
+  /** A screen or clip on the work index, where one exists. */
+  media?: { src: string; alt: string; poster?: string; kind?: "clip"; height?: number };
+  /** Anything a reader can go and look at themselves. */
+  links?: { label: string; href: string }[];
   link?: { label: string; href: string };
 };
 
@@ -28,6 +32,11 @@ export const PROJECTS: Project[] = [
     period: "May 2026 to present",
     caseStudy: true,
     rank: 1,
+    media: {
+      src: "/media/altus-kanban-redacted.jpg",
+      alt: "The Altus kanban board with task cards redacted",
+      height: 1099,
+    },
   },
   {
     slug: "beauty-rec",
@@ -49,6 +58,12 @@ export const PROJECTS: Project[] = [
     caseStudy: true,
     rank: 3,
     link: { label: "satyadrishti.vercel.app", href: "https://satyadrishti.vercel.app" },
+    media: { src: "/media/satya-landing.jpg", alt: "The Satya Drishti landing page" },
+    links: [
+      { label: "satyadrishti.vercel.app", href: "https://satyadrishti.vercel.app" },
+      { label: "Scanner", href: "https://satyadrishti.vercel.app/scanner" },
+      { label: "Call protection", href: "https://satyadrishti.vercel.app/call-protection" },
+    ],
   },
   {
     slug: "marketplus",
@@ -59,6 +74,12 @@ export const PROJECTS: Project[] = [
     period: "Launching Q3 2026",
     caseStudy: false,
     rank: 4,
+    media: {
+      src: "/media/marketplus-globe.mp4",
+      poster: "/media/marketplus-globe-poster.jpg",
+      alt: "The MarketPlus globe",
+      kind: "clip",
+    },
   },
   {
     slug: "monte-karlo",
@@ -70,6 +91,7 @@ export const PROJECTS: Project[] = [
     caseStudy: false,
     rank: 5,
     link: { label: "github.com/heshFr/MonteKarlo", href: "https://github.com/heshFr/MonteKarlo" },
+    links: [{ label: "github.com/heshFr/MonteKarlo", href: "https://github.com/heshFr/MonteKarlo" }],
   },
   {
     slug: "silent-drift",

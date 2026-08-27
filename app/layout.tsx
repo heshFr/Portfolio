@@ -5,7 +5,6 @@ import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
-  axes: ["opsz"],
   variable: "--font-bricolage",
   display: "swap",
 });
@@ -72,11 +71,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </li>
                 ))}
                 <li>
-                  {/* A static file, so a plain anchor. A next/link would
-                      prefetch the whole PDF on every page view. */}
-                  <a href="/resume.pdf" className="label hover:text-red inline-block py-1.5">
+                  <Link
+                    href="/resume"
+                    className="label hover:text-red inline-block py-1.5"
+                  >
                     Resume
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </nav>

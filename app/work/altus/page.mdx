@@ -1,5 +1,6 @@
-import { CaseHeader, Section, Decision, Stack, Ledger, ScreenSlot } from "@/components/case";
+import { CaseHeader, Section, Decision, Stack, Ledger } from "@/components/case";
 import { Figure, Chain, Scale } from "@/components/figures";
+import { Screen } from "@/components/media";
 import { Fig } from "@/components/claim";
 
 export const metadata = {
@@ -76,11 +77,14 @@ I was asked for a task tracker. What the company needed was something that could
 
 **The platform underneath.** Firebase issues identity, Supabase Postgres holds the data with row-level security keyed on the Firebase user, nearly every table has an append-only event sibling, and a notification bus fans out to email, Slack, WhatsApp and web push with retries and per-person channel preferences.
 
-<ScreenSlot>
-It is an invite-only internal system and I do not have clearance to publish its
-screens. Rather than fill the space with something decorative, it is empty. If
-clearance comes, redacted screens belong here.
-</ScreenSlot>
+<Screen
+  src="/media/altus-kanban-redacted.jpg"
+            height={1099}
+  alt="The Altus kanban board with every task card redacted, showing the navigation, filters, the task count and the status columns"
+  caption="The board, with every card irreversibly redacted. The cards carried colleagues' names and client payment chases, so they are pixelated at source rather than blurred in CSS. What survives is the part I can honestly show: the chrome, the filters, 542 tasks on the board, and the status columns with their counts."
+/>
+
+The rest of the system stays behind the login. It is invite-only and the screens are full of other people's names, salaries and attendance, so this is as far as I am willing to go without written clearance.
 
 </Section>
 
