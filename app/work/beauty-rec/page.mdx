@@ -1,4 +1,5 @@
 import { CaseHeader, Section, Decision, Stack, Ledger } from "@/components/case";
+import { Figure, Pipeline, Comparison } from "@/components/figures";
 import { Fig } from "@/components/claim";
 
 export const metadata = {
@@ -54,7 +55,15 @@ So I measured the data before designing anything, and the measurement decided th
 
 </Section>
 
-<Section label="What I built">
+<Section
+  label="What I built"
+  note={
+    <>
+      <p className="label mb-2">Standalone</p>
+      <p>The recommender imports no web framework. The API is a thin adapter over it, which is what keeps the tests fast and the logic reviewable on its own.</p>
+    </>
+  }
+>
 
 **Skin analysis.** A selfie goes through face mesh landmarking, patches are sampled from the cheeks and forehead, and the colour is converted from sRGB into CIELAB so it can be reasoned about perceptually rather than as screen values. That lands on a Monk Skin Tone bin and an undertone, with a confidence score attached. When confidence is low the system says so instead of guessing.
 
@@ -64,13 +73,32 @@ So I measured the data before designing anything, and the measurement decided th
 
 **Re-ranking.** Three passes shape the final set rather than the individual items: near-duplicate suppression, a return-risk penalty, and diversity with brand and category caps. Ten near-identical niacinamide serums can each be individually relevant and still be a useless answer.
 
+<Figure caption="Every stage throws work away. The counts are what survives each one, and the numbers are not to scale in the drawing.">
+  <Pipeline
+    stages={[
+      { count: "60,000", unit: "in the catalog", stage: "Retrieval", parts: ["attribute and shade", "semantic", "collaborative", "popularity"] },
+      { count: "~500", unit: "candidates", stage: "Ranking", parts: ["LambdaMART", "23 features", "retrieval provenance among them"] },
+      { count: "~50", unit: "ranked", stage: "Re-rank", parts: ["near-duplicate", "return risk", "diversity, brand and category caps"] },
+      { count: "20", unit: "shown", stage: "Result", parts: ["with a shade confidence", "or an admission it is unsure"] },
+    ]}
+  />
+</Figure>
+
 **Routine building.** Coherent morning and evening regimens where ingredient conflicts are resolved during selection rather than flagged afterwards, because a warning attached to a recommendation is a way of making the user do the work.
 
 **Graceful degradation.** The API starts and serves useful recommendations with no build artifacts at all. A missing artifact removes a retriever, an untrained ranker falls back to a linear scorer, absent embeddings skip diversity re-ranking, and the health endpoint reports exactly what is missing. You can clone it and see it work before you run anything.
 
 </Section>
 
-<Section label="Three decisions worth defending">
+<Section
+  label="Three decisions worth defending"
+  note={
+    <>
+      <p className="label mb-2">The shape of these</p>
+      <p>Two are about refusing a default that would have made the numbers look better. The third is about refusing to answer.</p>
+    </>
+  }
+>
 
 <Decision
   title="No vector database"
@@ -156,12 +184,17 @@ And my first explanation was plausible, mechanically real, and not the cause. I 
 
 Here is where it stands, and it is not where I wanted it.
 
-| Configuration | hit@20 |
-| --- | --- |
-| Twenty most-reviewed products, the same list for everyone | 0.0504 |
-| Full pipeline, re-ranking switched off | 0.0162 |
-| Semantic retrieval alone | 0.0127 |
-| Full pipeline as shipped | 0.0116 |
+<Figure caption="hit@20 over 1,732 test queries, from reports/evaluation.json. Higher is better. The shipped configuration is last.">
+  <Comparison
+    max={0.0504}
+    rows={[
+      { label: "Twenty most-reviewed products, one list for everyone", value: 0.0504, display: "0.0504" },
+      { label: "Full pipeline, re-ranking switched off", value: 0.0162, display: "0.0162" },
+      { label: "Semantic retrieval alone", value: 0.0127, display: "0.0127" },
+      { label: "Full pipeline", value: 0.0116, display: "0.0116", mark: "as shipped" },
+    ]}
+  />
+</Figure>
 
 The full system loses to its own semantic retriever, loses to itself with re-ranking turned off, and <Fig id="beauty-baseline">loses to a single global bestseller list</Fig> by about four times. I am not going to dress that up, and I am not going to quote a relevance improvement, because there is not one to quote.
 
@@ -177,7 +210,15 @@ That is an argument, not an excuse. The honest summary is that the architecture 
 
 </Section>
 
-<Section label="What I would do differently">
+<Section
+  label="What I would do differently"
+  note={
+    <>
+      <p className="label mb-2">In priority order</p>
+      <p>Set by the measurement rather than by what would be most interesting to build.</p>
+    </>
+  }
+>
 
 **Fix retrieval recall before anything else.** Everything downstream is capped by that 15 per cent, and I spent time on stages that could not move the number.
 

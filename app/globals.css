@@ -21,8 +21,8 @@
   --text-note: 0.8125rem;
   --text-body: 1.0625rem;
   --text-body-lg: 1.1875rem;
-  --text-title: clamp(1.55rem, 3.2vw, 2.15rem);
-  --text-hero: clamp(1.7rem, 3.5vw, 2.45rem);
+  --text-title: clamp(1.75rem, 3.8vw, 2.6rem);
+  --text-hero: clamp(2rem, 4.6vw, 3.15rem);
 }
 
 /* ---------------------------------------------------------------------------
@@ -184,9 +184,12 @@ body {
     .in-margin {
       grid-column: margin;
       /* Pin the note to the top of its section rather than letting grid
-         auto-placement drop it below every paragraph in the main column. */
+         auto-placement drop it below every paragraph in the main column, then
+         let it travel down alongside a long section. */
       grid-row: 1 / span 60;
       align-self: start;
+      position: sticky;
+      top: 2.5rem;
     }
   }
 

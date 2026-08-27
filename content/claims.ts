@@ -295,6 +295,15 @@ export const CLAIMS = {
     checked: "2026-08-27",
     status: "verified",
   },
+  "altus-audit-tables": {
+    id: "altus-audit-tables",
+    value: "19",
+    label: "of the tables exist only to keep history",
+    source:
+      "Tables in db/schema.ts whose name marks them as an append-only log, event stream or audit record. calendar_events and salary_runs match the pattern and are excluded because they are domain entities, not logs. The remaining 196 are ordinary tables.",
+    checked: "2026-08-28",
+    status: "verified",
+  },
 } as const satisfies Record<string, Claim>;
 
 export type ClaimId = keyof typeof CLAIMS;

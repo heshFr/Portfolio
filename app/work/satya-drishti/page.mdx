@@ -1,4 +1,5 @@
 import { CaseHeader, Section, Decision, Stack, Ledger } from "@/components/case";
+import { Figure, Layers } from "@/components/figures";
 import { Fig } from "@/components/claim";
 
 export const metadata = {
@@ -36,7 +37,15 @@ Four detection modules, for audio, video, text and a fusion layer that combines 
 
 </Section>
 
-<Section label="What was there before">
+<Section
+  label="What was there before"
+  note={
+    <>
+      <p className="label mb-2">The scam</p>
+      <p>A parent gets a call in their child’s voice asking for money urgently. The voice is good enough that they send it.</p>
+    </>
+  }
+>
 
 Voice cloning got good and cheap at the same time, and the fraud followed immediately. The scam that motivated this is the one where a parent gets a call in their child's voice asking for money urgently, and the voice is real enough that they send it.
 
@@ -46,11 +55,35 @@ I started this for a hackathon problem statement on domain-specialised agents wi
 
 </Section>
 
-<Section label="What I built">
+<Section
+  label="What I built"
+  note={
+    <>
+      <p className="label mb-2">Four modules</p>
+      <p>Audio, video, text and a fusion layer over all three. The audio path is the one with real depth, so it is the one drawn out below.</p>
+    </>
+  }
+>
 
 **The live call path.** Audio is captured in the browser through an audio worklet, streamed over a websocket in chunks, and passed through the full audio ensemble in near real time, with the verdict updating as the call goes on rather than after it.
 
 **The audio ensemble.** Nine layers: self-supervised features, speech-encoder features, a raw-waveform network that skips preprocessing entirely, prosodic micro-jitter, breathing patterns, formant transitions, phase coherence between harmonics, cross-chunk consistency over time, and a weighted fusion that combines them into one decision.
+
+<Figure caption="The audio path. Six layers score; three of them can stop the decision outright, and layer nine has to honour that.">
+  <Layers
+    layers={[
+      { n: 1, name: "Self-supervised features", what: "artifacts below the threshold of hearing" },
+      { n: 2, name: "Speech-encoder features", what: "patterns specific to text-to-speech" },
+      { n: 3, name: "Raw waveform", what: "no preprocessing at all, so nothing is smoothed away" },
+      { n: 4, name: "Prosodic micro-jitter", what: "synthetic speech is too even", veto: true },
+      { n: 5, name: "Breathing", what: "a vocal tract has to breathe", veto: true },
+      { n: 6, name: "Formant transitions", what: "resonances a mouth has to move through", veto: true },
+      { n: 7, name: "Phase coherence", what: "harmonics out of step with each other" },
+      { n: 8, name: "Temporal tracking", what: "drift in the voice across chunks" },
+      { n: 9, name: "Weighted fusion", what: "the decision, and the veto that can override it" },
+    ]}
+  />
+</Figure>
 
 **Media forensics.** Uploaded images run through five checks: error level analysis, frequency patterns, metadata signatures, a trained classifier and compression analysis. Video runs a spatial model over frames and a temporal model over motion.
 
@@ -58,7 +91,15 @@ I started this for a hackathon problem statement on domain-specialised agents wi
 
 </Section>
 
-<Section label="Two decisions worth defending">
+<Section
+  label="Two decisions worth defending"
+  note={
+    <>
+      <p className="label mb-2">Both are refusals</p>
+      <p>One refuses to let the neural ensemble have the last word. The other refuses to send the audio anywhere.</p>
+    </>
+  }
+>
 
 <Decision
   title="A hard rule that can overrule the neural networks"
@@ -122,7 +163,15 @@ The fixes came in three shapes.
 
 </Section>
 
-<Section label="What I would do differently">
+<Section
+  label="What I would do differently"
+  note={
+    <>
+      <p className="label mb-2">Written after</p>
+      <p>All three of these come out of the same demo, which is the argument for demoing early in front of someone unforgiving.</p>
+    </>
+  }
+>
 
 **Calibrate on the deployment distribution, not the training distribution.** The phone-codec case was in front of me the entire time. I did not test it until it embarrassed me in front of the person it was accusing.
 

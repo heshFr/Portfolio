@@ -1,4 +1,5 @@
 import { CaseHeader, Section, Decision, Stack, Ledger, ScreenSlot } from "@/components/case";
+import { Figure, Chain, Scale } from "@/components/figures";
 import { Fig } from "@/components/claim";
 
 export const metadata = {
@@ -35,7 +36,15 @@ It ships as <Fig id="altus-clients" /> separate clients off one backend: the web
 
 </Section>
 
-<Section label="What was there before">
+<Section
+  label="What was there before"
+  note={
+    <>
+      <p className="label mb-2">The brief</p>
+      <p>I was asked for a task tracker. Almost every module on this page came later, from someone asking whether the system could also hold the thing they were keeping in a file.</p>
+    </>
+  }
+>
 
 Spreadsheets. About <Fig id="altus-spreadsheets" /> of them, and they were the record. Attendance in one workbook, salary in another, receivables in a third, a weekly checklist in a fourth, and a task list that took whatever shape the last person to touch it preferred.
 
@@ -75,7 +84,15 @@ clearance comes, redacted screens belong here.
 
 </Section>
 
-<Section label="Three decisions worth defending">
+<Section
+  label="Three decisions worth defending"
+  note={
+    <>
+      <p className="label mb-2">How to read these</p>
+      <p>Each one names the choice a reasonable engineer would have made instead, then the reason I did not make it, then what it cost.</p>
+    </>
+  }
+>
 
 <Decision
   title="Two identity vendors instead of one"
@@ -88,6 +105,33 @@ That is a bridge I have to maintain, and it introduces a class of bug where two 
 
 The second half of that decision matters more than the first. Because the policies are enforced in the database rather than in application code, a bug in a query cannot leak another person's pay. The rule lives one layer below the code most likely to be wrong.
 
+<Figure caption="One request. The two hops that matter are the third and the fourth: the token crosses vendors, and the rule is enforced under the query rather than inside it.">
+  <Chain
+    hops={[
+      { at: "Browser", does: "Sends a session cookie with the request." },
+      {
+        at: "Edge middleware",
+        does: "Verifies the cookie and checks for revocation, on every request.",
+        note: "Someone deactivated at 10:00 is locked out at 10:00, not whenever their token would have expired.",
+      },
+      {
+        at: "The bridge",
+        does: "The verified Firebase token is handed to the Supabase client as its access token.",
+      },
+      {
+        at: "Postgres",
+        does: "Row-level security evaluates the policy against the Firebase user id and decides what the query is allowed to see.",
+        note: "No query in the application can widen this. That is the whole point of putting it here.",
+      },
+      {
+        at: "The event table",
+        does: "The mutation writes an append-only record beside the row it changed.",
+      },
+    ]}
+  />
+</Figure>
+
+
 </Decision>
 
 <Decision
@@ -99,7 +143,13 @@ Almost every table has an append-only events sibling: task events, employee even
 
 The reason is the question people actually ask. Nobody asks what a payroll figure is. They ask why it is that, and who changed it, and when. A row that has been overwritten in place cannot answer, and the moment it cannot answer, the system is a spreadsheet with better fonts.
 
-The cost is real and it is visible in the numbers at the top of this page. Writes are heavier. A large part of why there are <Fig id="altus-tables" /> tables is this decision showing up in the count.
+The cost is real and it is countable. Writes are heavier, and <Fig id="altus-audit-tables" /> of the <Fig id="altus-tables" /> tables exist for no reason other than keeping history.
+
+<Figure caption="Each mark is one table in the schema. The audit decision is visible in the count, and smaller in it than I used to claim.">
+  <Scale total={215} marked={19} markedLabel="keep an append-only history" restLabel="ordinary tables" />
+</Figure>
+
+Which is worth saying plainly, because I have described this before as the main reason the schema is large. It is not. The bigger driver is further down, under what I would do differently.
 
 </Decision>
 
@@ -148,7 +198,15 @@ That is not the cure. The cure is indexing the scans that hold a connection that
 
 </Section>
 
-<Section label="Attendance, and why it is gone">
+<Section
+  label="Attendance, and why it is gone"
+  note={
+    <>
+      <p className="label mb-2">Retired</p>
+      <p>Built between June and August 2026, run in production, then switched off when the company changed its HR process. It is here because leaving it out would flatter the record.</p>
+    </>
+  }
+>
 
 The largest single thing I built here is no longer running.
 
@@ -162,7 +220,15 @@ The company then changed its HR process and the module was retired. It ran in pr
 
 </Section>
 
-<Section label="What I would do differently">
+<Section
+  label="What I would do differently"
+  note={
+    <>
+      <p className="label mb-2">Still true</p>
+      <p>None of these are fixed. They are written down because a list of regrets nobody acts on is at least a list somebody else can act on.</p>
+    </>
+  }
+>
 
 **<Fig id="altus-tables" /> tables is too many.** Some of that is the audit siblings earning their place. A lot of it is that each module got its own tables when three of them wanted the same shape. There should be one generic approval chain and one generic recurring-schedule table, not a version of each per module.
 
@@ -181,6 +247,7 @@ Next.js 16, React 19, TypeScript strict, Tailwind v4, Supabase Postgres, Drizzle
     "altus-months",
     "altus-screens",
     "altus-tables",
+    "altus-audit-tables",
     "altus-lines",
     "altus-crons",
     "altus-migrations",
